@@ -2684,7 +2684,7 @@ async function bcSend(){
   document.getElementById('bcSend').disabled = true;
 
  try {
-  const res = await fetch('http://localhost:3001/chat', {
+  const res = await fetch('/.netlify/functions/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -2858,8 +2858,8 @@ If asked about another website or company, be helpful but clear about your bound
 
 
     const data = await res.json();
-    let reply = (data && typeof data.reply === 'string')
-  ? data.reply
+    let reply = (data && typeof data.choices?.[0]?.message?.content === 'string')
+  ? data.choices[0].message.content
   : "I'm having trouble answering that right now.";
 
     if (reply && typeof reply === 'string') {
