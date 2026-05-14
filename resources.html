@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resources & Calculators | Brian McGroarty</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c14;--bg2:#0d1220;--bg3:#111827;
+  --purple:#7c3aed;--purple-light:#a78bfa;
+  --purple-glow:rgba(167,139,250,0.35);
+  --purple-dim:rgba(139,92,246,0.12);
+  --purple-border:rgba(139,92,246,0.25);
+  --white:#ffffff;--text:rgba(255,255,255,0.85);
+  --muted:rgba(255,255,255,0.45);--faint:rgba(255,255,255,0.05);
+  --border:rgba(255,255,255,0.07);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+.go{position:fixed;pointer-events:none;z-index:0;border-radius:50%;}
+.go1{width:900px;height:900px;background:radial-gradient(circle,rgba(124,58,237,0.08) 0%,transparent 70%);top:-350px;right:-200px;}
+.go2{width:600px;height:600px;background:radial-gradient(circle,rgba(124,58,237,0.05) 0%,transparent 70%);bottom:-200px;left:-150px;}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:68px;padding:0 60px;display:flex;justify-content:space-between;align-items:center;background:rgba(8,12,20,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:"Playfair Display",serif;font-size:20px;color:var(--white);letter-spacing:0.5px;text-decoration:none;}
+.nav-logo span{color:var(--purple-light);}
+.nav-back{color:var(--muted);font-size:13px;font-weight:500;text-decoration:none;display:flex;align-items:center;gap:6px;transition:color 0.2s;}
+.nav-back:hover{color:var(--purple-light);}
+
+.wrap{max-width:1000px;margin:0 auto;padding:108px 40px 80px;position:relative;z-index:1;}
+
+.page-eyebrow{display:inline-flex;align-items:center;gap:10px;margin-bottom:18px;}
+.eyebrow-line{width:32px;height:1px;background:var(--purple-light);}
+.eyebrow-text{font-size:12px;font-weight:600;letter-spacing:2px;color:var(--purple-light);text-transform:uppercase;}
+.page-title{font-family:"Playfair Display",serif;font-size:clamp(32px,5vw,52px);font-weight:900;color:var(--white);line-height:1.1;margin-bottom:14px;}
+.page-title em{font-style:italic;color:var(--purple-light);}
+.page-sub{font-size:16px;color:var(--muted);font-weight:300;max-width:560px;line-height:1.7;margin-bottom:56px;}
+
+/* card grid */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
+@media(max-width:640px){.grid{grid-template-columns:1fr;}}
+
+.calc-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:32px;display:flex;flex-direction:column;gap:20px;transition:transform 0.25s,border-color 0.25s,box-shadow 0.25s;position:relative;overflow:hidden;}
+.calc-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--purple);opacity:0;transition:opacity 0.25s;}
+.calc-card:hover{transform:translateY(-4px);border-color:var(--purple-border);box-shadow:0 0 24px var(--purple-glow),0 8px 32px rgba(0,0,0,0.3);}
+.calc-card:hover::before{opacity:1;}
+
+.card-icon{width:48px;height:48px;border-radius:10px;background:var(--purple-dim);border:1px solid var(--purple-border);display:flex;align-items:center;justify-content:center;font-size:22px;}
+.card-tag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--purple-light);margin-bottom:2px;}
+.card-tag.external{color:rgba(255,255,255,0.3);}
+.card-tag.external::after{content:"↗";font-size:10px;}
+.card-title{font-family:"Playfair Display",serif;font-size:22px;font-weight:700;color:var(--white);line-height:1.2;margin-bottom:6px;}
+.card-desc{font-size:14px;color:var(--muted);line-height:1.7;font-weight:300;flex:1;}
+.card-features{display:flex;flex-direction:column;gap:7px;margin-top:4px;}
+.card-feature{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);}
+.card-feature::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--purple-light);flex-shrink:0;}
+
+.card-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 24px;border-radius:6px;font-family:"DM Sans",sans-serif;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;border:none;transition:background 0.2s,transform 0.2s,box-shadow 0.2s;letter-spacing:0.3px;margin-top:auto;}
+.card-btn.primary{background:var(--purple);color:var(--white);}
+.card-btn.primary:hover{background:#6d28d9;transform:translateY(-2px);box-shadow:0 0 16px var(--purple-glow);}
+.card-btn.outline{background:transparent;color:var(--purple-light);border:1px solid var(--purple-border);}
+.card-btn.outline:hover{border-color:var(--purple-light);box-shadow:0 0 14px var(--purple-glow);}
+
+/* divider between sections */
+.section-label{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.2);margin:40px 0 20px;display:flex;align-items:center;gap:12px;}
+.section-label::after{content:"";flex:1;height:1px;background:var(--border);}
+
+/* cta */
+.cta{margin-top:48px;background:var(--purple-dim);border:1px solid var(--purple-border);border-top:3px solid var(--purple);border-radius:10px;padding:32px;text-align:center;}
+.cta h3{font-family:"Playfair Display",serif;font-size:22px;color:var(--white);margin-bottom:8px;}
+.cta p{font-size:14px;color:var(--muted);font-weight:300;max-width:480px;margin:0 auto 20px;line-height:1.7;}
+.cta a{background:var(--purple);color:var(--white);padding:13px 28px;border-radius:6px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block;transition:background 0.2s,transform 0.2s;}
+.cta a:hover{background:#6d28d9;transform:translateY(-2px);}
+
+@media(max-width:600px){nav{padding:0 20px;}.wrap{padding:88px 20px 60px;}}
+</style>
+</head>
+<body>
+
+<div class="go go1"></div>
+<div class="go go2"></div>
+
+<nav>
+  <a class="nav-logo" href="index.html">Brian<span>.</span>McGroarty</a>
+  <a class="nav-back" href="index.html">← Back to site</a>
+</nav>
+
+<div class="wrap">
+
+  <div class="page-eyebrow">
+    <div class="eyebrow-line"></div>
+    <div class="eyebrow-text">Free Resources</div>
+  </div>
+
+  <h1 class="page-title">Tools that actually <em>help.</em></h1>
+  <p class="page-sub">No gimmicks. No sales pitch. Just real calculators and resources to help you understand your numbers — whether you're buying, budgeting, or working through debt.</p>
+
+  <div class="section-label">Real estate</div>
+
+  <div class="grid">
+
+    <!-- Title Insurance Calculator -->
+    <div class="calc-card">
+      <div class="card-icon">🏠</div>
+      <div>
+        <div class="card-tag external">Powered by CoreTitle</div>
+        <div class="card-title">Title Insurance Calculator</div>
+        <div class="card-desc">Get an instant title insurance quote for any property. Enter the address, transaction type, sales price, and loan amount to see your exact closing cost breakdown.</div>
+      </div>
+      <div class="card-features">
+        <div class="card-feature">Purchase, refinance & cash transactions</div>
+        <div class="card-feature">NJ, PA, FL & MI coverage</div>
+        <div class="card-feature">Instant itemized quote</div>
+      </div>
+      <a class="card-btn outline" href="https://coretitle.com/rate-calculator/" target="_blank">Get a title quote ↗</a>
+    </div>
+
+    <!-- Home Affordability -->
+    <div class="calc-card">
+      <div class="card-icon">📐</div>
+      <div>
+        <div class="card-tag">Built-in tool</div>
+        <div class="card-title">Home Affordability Calculator</div>
+        <div class="card-desc">Find out what you can realistically afford before you start shopping. Based on the same DTI guidelines lenders actually use — not a rough guess.</div>
+      </div>
+      <div class="card-features">
+        <div class="card-feature">28% / 36% DTI lending guidelines</div>
+        <div class="card-feature">Adjustable rate slider</div>
+        <div class="card-feature">PMI & down payment analysis</div>
+      </div>
+      <a class="card-btn primary" href="calculators.html?tab=afford">Calculate affordability →</a>
+    </div>
+
+    <div class="section-label" style="grid-column:1/-1;">Personal finance</div>
+
+    <!-- Debt Payoff -->
+    <div class="calc-card">
+      <div class="card-icon">💳</div>
+      <div>
+        <div class="card-tag">Built-in tool</div>
+        <div class="card-title">Debt Payoff Calculator</div>
+        <div class="card-desc">See exactly when you'll be debt-free and how much interest you'll save. Add all your debts, choose your strategy, and get a real month-by-month payoff plan.</div>
+      </div>
+      <div class="card-features">
+        <div class="card-feature">Avalanche & Snowball strategies</div>
+        <div class="card-feature">Multiple debts at once</div>
+        <div class="card-feature">Total interest saved calculation</div>
+      </div>
+      <a class="card-btn primary" href="calculators.html?tab=debt">Calculate payoff plan →</a>
+    </div>
+
+    <!-- Budget Builder -->
+    <div class="calc-card">
+      <div class="card-icon">📊</div>
+      <div>
+        <div class="card-tag">Built-in tool</div>
+        <div class="card-title">Budget Builder</div>
+        <div class="card-desc">Enter your income and monthly expenses to see exactly where your money is going — and how much you have left to save, invest, or put toward debt.</div>
+      </div>
+      <div class="card-features">
+        <div class="card-feature">9 expense categories</div>
+        <div class="card-feature">Visual spending breakdown</div>
+        <div class="card-feature">50/30/20 rule comparison</div>
+      </div>
+      <a class="card-btn primary" href="calculators.html?tab=budget">Build my budget →</a>
+    </div>
+
+  </div>
+
+  <div class="cta">
+    <h3>Whatever your number looks like — there's a next step.</h3>
+    <p>Whether you're working through debt, figuring out what you can afford, or trying to get your budget right before buying — Brian will introduce you to the right people to move forward. No pressure. No pitch. Just real connections.</p>
+    <a href="index.html#contact">Introduce me to a loan officer →</a>
+  </div>
+
+</div>
+
+</body>
+</html>
