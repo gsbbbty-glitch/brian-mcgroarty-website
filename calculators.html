@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financial Calculators | Brian McGroarty</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c14;--bg2:#0d1220;--bg3:#111827;
+  --purple:#7c3aed;--purple-light:#a78bfa;
+  --purple-glow:rgba(167,139,250,0.35);
+  --purple-dim:rgba(139,92,246,0.12);
+  --purple-border:rgba(139,92,246,0.25);
+  --white:#ffffff;--text:rgba(255,255,255,0.85);
+  --muted:rgba(255,255,255,0.45);--faint:rgba(255,255,255,0.05);
+  --border:rgba(255,255,255,0.07);
+  --green:#10b981;--green-dim:rgba(16,185,129,0.12);--green-border:rgba(16,185,129,0.25);
+  --red:#f87171;--red-dim:rgba(248,113,113,0.1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* ambient glows */
+.go{position:fixed;pointer-events:none;z-index:0;border-radius:50%;}
+.go1{width:900px;height:900px;background:radial-gradient(circle,rgba(124,58,237,0.08) 0%,transparent 70%);top:-350px;right:-200px;}
+.go2{width:600px;height:600px;background:radial-gradient(circle,rgba(124,58,237,0.05) 0%,transparent 70%);bottom:-200px;left:-150px;}
+
+/* nav */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:68px;padding:0 60px;display:flex;justify-content:space-between;align-items:center;background:rgba(8,12,20,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:"Playfair Display",serif;font-size:20px;color:var(--white);letter-spacing:0.5px;text-decoration:none;}
+.nav-logo span{color:var(--purple-light);}
+.nav-back{color:var(--muted);font-size:13px;font-weight:500;text-decoration:none;display:flex;align-items:center;gap:6px;transition:color 0.2s;}
+.nav-back:hover{color:var(--purple-light);}
+
+/* page wrap */
+.wrap{max-width:1000px;margin:0 auto;padding:108px 40px 80px;position:relative;z-index:1;}
+.wrap > *{width:100%;}
+
+/* page header */
+.page-eyebrow{display:inline-flex;align-items:center;gap:10px;margin-bottom:18px;}
+.eyebrow-line{width:32px;height:1px;background:var(--purple-light);}
+.eyebrow-text{font-size:12px;font-weight:600;letter-spacing:2px;color:var(--purple-light);text-transform:uppercase;}
+.page-title{font-family:"Playfair Display",serif;font-size:clamp(32px,5vw,52px);font-weight:900;color:var(--white);line-height:1.1;margin-bottom:14px;}
+.page-title em{font-style:italic;color:var(--purple-light);}
+.page-sub{font-size:16px;color:var(--muted);font-weight:300;max-width:560px;line-height:1.7;margin-bottom:48px;}
+
+/* tab bar */
+.tabs{display:flex;gap:4px;margin-bottom:40px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:5px;}
+.tab{flex:1;padding:11px 16px;border-radius:5px;border:none;background:transparent;color:var(--muted);font-family:"DM Sans",sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;letter-spacing:0.3px;}
+.tab.active{background:var(--purple-dim);color:var(--purple-light);border:1px solid var(--purple-border);}
+.tab:hover:not(.active){color:var(--text);}
+
+/* calc panels */
+.calc-panel{display:none;}
+.calc-panel.active{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:stretch;}
+.panel-intro{grid-column:1/-1;}
+@media(max-width:700px){.calc-panel.active{grid-template-columns:1fr;}}
+
+/* card */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:28px;transition:border-color 0.25s;}
+.card:hover{border-color:var(--purple-border);}
+.card-title{font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--purple-light);margin-bottom:22px;}
+
+/* form elements */
+.field{margin-bottom:18px;}
+.field label{display:block;font-size:13px;color:var(--muted);font-weight:500;margin-bottom:7px;}
+.field-row{position:relative;}
+.field-prefix{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;font-weight:500;pointer-events:none;}
+.field input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:11px 14px 11px 28px;color:var(--white);font-family:"DM Sans",sans-serif;font-size:15px;font-weight:500;transition:border-color 0.2s,box-shadow 0.2s;outline:none;}
+.field input.no-prefix{padding-left:14px;}
+.field input:focus{border-color:var(--purple-border);box-shadow:0 0 0 3px var(--purple-dim);}
+.field input::placeholder{color:rgba(255,255,255,0.2);}
+
+/* range slider */
+.range-wrap{margin-top:6px;}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:2px;background:var(--border);outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--purple-light);border:2px solid var(--bg);box-shadow:0 0 8px var(--purple-glow);cursor:pointer;}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--purple-light);border:2px solid var(--bg);cursor:pointer;}
+.range-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:5px;}
+
+/* calc button */
+.calc-btn{width:100%;padding:13px;border-radius:6px;border:none;background:var(--purple);color:var(--white);font-family:"DM Sans",sans-serif;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:0.3px;transition:background 0.2s,transform 0.2s,box-shadow 0.2s;margin-top:8px;}
+.calc-btn:hover{background:#6d28d9;transform:translateY(-2px);box-shadow:0 0 16px var(--purple-glow);}
+
+/* results card */
+.results{background:var(--bg2);border:1px solid var(--purple-border);border-top:3px solid var(--purple);border-radius:10px;padding:28px;height:100%;}
+.result-empty{text-align:center;padding:40px 20px;}
+.result-empty-icon{font-size:32px;margin-bottom:12px;opacity:0.4;}
+.result-empty-text{font-size:14px;color:var(--muted);font-weight:300;}
+.result-stat{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+.result-stat:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.result-label{font-size:12px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.result-value{font-size:26px;font-weight:600;color:var(--white);}
+.result-value.green{color:var(--green);}
+.result-value.red{color:var(--red);}
+.result-value.purple{color:var(--purple-light);}
+.result-note{font-size:12px;color:var(--muted);margin-top:4px;font-weight:300;line-height:1.5;}
+
+/* progress bar */
+.prog-bar-wrap{background:var(--bg3);border-radius:4px;height:8px;overflow:hidden;margin-top:10px;}
+.prog-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--purple),var(--purple-light));transition:width 0.6s ease;}
+
+/* debt list */
+.debt-list{margin-bottom:16px;}
+.debt-grid{display:grid;grid-template-columns:minmax(110px,1.1fr) minmax(0,1.55fr) minmax(72px,0.8fr) minmax(72px,0.8fr) 28px;column-gap:8px;align-items:center;width:100%;}
+.debt-head{margin-bottom:8px;}
+.debt-head-cell{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);text-align:center;}
+.debt-item{margin-bottom:8px;}
+.debt-item > *{min-width:0;}
+.debt-item input{width:100%;min-width:0;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:9px 12px;color:var(--white);font-family:"DM Sans",sans-serif;font-size:13px;outline:none;transition:border-color 0.2s;box-sizing:border-box;}
+.debt-item input:focus{border-color:var(--purple-border);}
+.debt-item input::placeholder{color:rgba(255,255,255,0.2);}
+.debt-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:4px;transition:color 0.2s;}
+.debt-remove:hover{color:var(--red);}
+.add-debt-btn{background:none;border:1px dashed var(--border);border-radius:6px;color:var(--muted);font-family:"DM Sans",sans-serif;font-size:13px;padding:9px;width:100%;cursor:pointer;transition:all 0.2s;margin-bottom:16px;}
+.add-debt-btn:hover{border-color:var(--purple-border);color:var(--purple-light);}
+
+/* method pills */
+.method-row{display:flex;gap:8px;margin-bottom:18px;}
+.method-pill{flex:1;padding:9px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:"DM Sans",sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;text-align:center;}
+.method-pill.active{background:var(--purple-dim);border-color:var(--purple-border);color:var(--purple-light);}
+
+/* budget category rows */
+.budget-cat{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.budget-cat-label{font-size:13px;color:var(--muted);width:120px;flex-shrink:0;}
+.budget-cat input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:9px 12px 9px 24px;color:var(--white);font-family:"DM Sans",sans-serif;font-size:13px;outline:none;transition:border-color 0.2s;position:relative;}
+.budget-cat input:focus{border-color:var(--purple-border);}
+.budget-cat-wrap{position:relative;flex:1;}
+.budget-cat-wrap::before{content:"$";position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none;z-index:1;}
+
+/* divider */
+.section-divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+
+/* how it works box */
+.how-it-works{background:var(--faint);border:1px solid var(--border);border-left:3px solid var(--purple-light);border-radius:6px;padding:16px 18px;margin-bottom:28px;}
+.how-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--purple-light);margin-bottom:7px;}
+.how-text{font-size:13px;color:var(--muted);line-height:1.7;font-weight:300;}
+.how-text strong{color:var(--text);font-weight:500;}
+.warning-box{margin-top:18px;padding:14px 16px;border-radius:8px;background:var(--red-dim);border:1px solid rgba(248,113,113,0.25);color:#fecaca;font-size:13px;line-height:1.6;}
+.warning-box strong{color:#fff1f2;}
+
+/* cta strip */
+.cta-strip{margin-top:48px;background:var(--purple-dim);border:1px solid var(--purple-border);border-radius:10px;padding:28px 32px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+.cta-strip-text h3{font-family:"Playfair Display",serif;font-size:20px;color:var(--white);margin-bottom:5px;}
+.cta-strip-text p{font-size:14px;color:var(--muted);font-weight:300;}
+.cta-strip a{background:var(--purple);color:var(--white);padding:12px 24px;border-radius:4px;font-size:14px;font-weight:600;text-decoration:none;white-space:nowrap;transition:background 0.2s,transform 0.2s;}
+.cta-strip a:hover{background:#6d28d9;transform:translateY(-2px);}
+
+@media(max-width:700px){
+  .debt-head{display:none;}
+  .debt-grid{grid-template-columns:1fr 1fr;column-gap:10px;row-gap:10px;}
+  .debt-item input:nth-child(1){grid-column:1/-1;}
+  .debt-item input:nth-child(2),
+  .debt-item input:nth-child(3),
+  .debt-item input:nth-child(4){grid-column:auto;}
+  .debt-remove{grid-column:2;justify-self:end;}
+}
+@media(max-width:600px){nav{padding:0 20px;}.wrap{padding:88px 20px 60px;}.tabs{flex-direction:column;}.cta-strip{flex-direction:column;}.page-title{font-size:30px;}}
+</style>
+</head>
+<body>
+
+<div class="go go1"></div>
+<div class="go go2"></div>
+
+<nav>
+  <a class="nav-logo" href="index.html">Brian<span>.</span>McGroarty</a>
+  <a class="nav-back" href="resources.html">← Back to resources</a>
+</nav>
+
+<div class="wrap">
+
+  <div class="page-eyebrow">
+    <div class="eyebrow-line"></div>
+    <div class="eyebrow-text">Free Tools</div>
+  </div>
+
+  <h1 class="page-title">Financial <em>Calculators</em></h1>
+  <p class="page-sub">Real numbers, real clarity. Use these tools to understand your debt, your budget, and what you can afford — no fluff, no sales pitch.</p>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('debt',this)">Debt Payoff</button>
+    <button class="tab" onclick="switchTab('afford',this)">Home Affordability</button>
+    <button class="tab" onclick="switchTab('budget',this)">Budget Builder</button>
+  </div>
+
+  <!-- ─── DEBT PAYOFF ─── -->
+  <div class="calc-panel active" id="panel-debt">
+
+    <div class="panel-intro">
+      <div class="how-it-works">
+        <div class="how-label">How this works</div>
+        <div class="how-text">
+          This calculator runs a <strong>month-by-month simulation</strong> of your actual debt payoff. Each month it applies interest to your balances, pays the minimums, then throws any extra payment at your target debt — either the <strong>highest interest rate first (Avalanche)</strong> to save the most money, or the <strong>smallest balance first (Snowball)</strong> for quick wins and momentum. The results show your real payoff timeline and total interest cost.
+          <br><br>
+          <strong>Important:</strong> This is an estimator, not financial advice. Numbers assume fixed rates and consistent payments. For a plan tailored to your full situation, connect with a professional.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Your debts</div>
+
+      <div style="margin-bottom:8px;font-size:12px;color:var(--muted);">Payoff strategy</div>
+      <div class="method-row">
+        <button class="method-pill active" id="pill-avalanche" onclick="setMethod('avalanche')">Avalanche<br><span style="font-weight:300;font-size:10px;">Highest rate first</span></button>
+        <button class="method-pill" id="pill-snowball" onclick="setMethod('snowball')">Snowball<br><span style="font-weight:300;font-size:10px;">Smallest balance first</span></button>
+      </div>
+
+      <div class="field">
+        <label>Extra monthly payment toward debt</label>
+        <div class="field-row">
+          <span class="field-prefix">$</span>
+          <input type="number" id="extra" placeholder="0" min="0">
+        </div>
+      </div>
+
+      <div style="margin-bottom:6px;font-size:12px;color:var(--muted);font-weight:500;">Add each debt below</div>
+      <div class="debt-head debt-grid">
+        <span class="debt-head-cell">Name</span>
+        <span class="debt-head-cell">Balance ($)</span>
+        <span class="debt-head-cell">Rate (%)</span>
+        <span class="debt-head-cell">Min ($)</span>
+        <span></span>
+      </div>
+      <div class="debt-list" id="debt-list"></div>
+      <button class="add-debt-btn" onclick="addDebt()">+ Add another debt</button>
+
+      <button class="calc-btn" onclick="calcDebt()">Calculate payoff plan</button>
+    </div>
+
+    <div class="results" id="debt-results">
+      <div class="result-empty">
+        <div class="result-empty-icon">📊</div>
+        <div class="result-empty-text">Enter your debts and hit calculate<br>to see your payoff plan.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── HOME AFFORDABILITY ─── -->
+  <div class="calc-panel" id="panel-afford">
+
+    <div class="panel-intro">
+      <div class="how-it-works">
+        <div class="how-label">How this works</div>
+        <div class="how-text">
+          This uses the same <strong>DTI guidelines lenders actually use</strong>. The 28% front-end rule says your housing payment shouldn't exceed 28% of gross monthly income. The 36% back-end rule says all debt payments combined shouldn't exceed 36%. We take whichever limit is more conservative and reverse-engineer a <strong>maximum home price</strong> from your numbers using standard amortization math.
+          <br><br>
+          <strong>Important:</strong> This is an estimator, not a pre-approval or financial advice. Your actual buying power depends on your credit score, employment history, and the full picture a lender reviews. Want a real number? Brian can introduce you to a trusted loan officer.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Your finances</div>
+
+      <div class="field">
+        <label>Monthly household income</label>
+        <div class="field-row"><span class="field-prefix">$</span><input type="number" id="a-income" placeholder="10,000" min="0"></div>
+      </div>
+      <div class="field">
+        <label>Monthly debt payments (car, student loans, etc.)</label>
+        <div class="field-row"><span class="field-prefix">$</span><input type="number" id="a-debt" placeholder="300" min="0"></div>
+      </div>
+      <div class="field">
+        <label>Down payment saved</label>
+        <div class="field-row"><span class="field-prefix">$</span><input type="number" id="a-down" placeholder="20,000" min="0"></div>
+      </div>
+      <div class="field">
+        <label>Interest rate: <strong id="a-rate-label" style="color:var(--purple-light)">7.0%</strong></label>
+        <div class="range-wrap">
+          <input type="range" id="a-rate" min="3" max="12" step="0.1" value="7" oninput="document.getElementById('a-rate-label').textContent=parseFloat(this.value).toFixed(1)+'%'">
+          <div class="range-labels"><span>3%</span><span>12%</span></div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Loan term</label>
+        <div class="field-row">
+          <input type="number" id="a-term" placeholder="30" min="1" max="30" class="no-prefix">
+        </div>
+      </div>
+      <div class="field">
+        <label>Current DTI snapshot</label>
+        <div class="result-note" id="a-dti-live">Enter your income and debt to see your current debt-to-income ratio.</div>
+        <div class="prog-bar-wrap"><div class="prog-bar" id="a-dti-bar" style="width:0%;"></div></div>
+      </div>
+      <button class="calc-btn" onclick="calcAfford()">Calculate affordability</button>
+    </div>
+
+    <div class="results" id="afford-results">
+      <div class="result-empty">
+        <div class="result-empty-icon">🏠</div>
+        <div class="result-empty-text">Enter your details and hit calculate<br>to see what you can afford.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── BUDGET BUILDER ─── -->
+  <div class="calc-panel" id="panel-budget">
+
+    <div class="panel-intro">
+      <div class="how-it-works">
+        <div class="how-label">How this works</div>
+        <div class="how-text">
+          Enter your monthly take-home pay and what you spend across each category. The calculator shows your <strong>leftover or shortfall</strong>, a visual breakdown of where your money goes, and how your spending compares to the <strong>50/30/20 rule</strong> — 50% on needs, 30% on wants, 20% toward savings or debt payoff.
+          <br><br>
+          <strong>Important:</strong> This is a snapshot tool, not a certified financial plan. Think of it as a mirror — it shows you what's happening so you can decide what to do next. If you're buying a home soon, your budget picture matters to lenders. Brian can connect you with someone who can help you get it where it needs to be.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Monthly income & expenses</div>
+
+      <div class="field">
+        <label>Monthly take-home income</label>
+        <div class="field-row"><span class="field-prefix">$</span><input type="number" id="b-income" placeholder="4,500" min="0"></div>
+      </div>
+
+      <hr class="section-divider">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;font-weight:500;letter-spacing:1px;text-transform:uppercase;">Monthly expenses</div>
+
+      <div class="budget-cat"><span class="budget-cat-label">Housing</span><div class="budget-cat-wrap"><input type="number" id="b-housing" placeholder="0"></div></div>
+      <div class="budget-cat"><span class="budget-cat-label">Transportation</span><div class="budget-cat-wrap"><input type="number" id="b-transport" placeholder="0"></div></div>
+      <div class="budget-cat"><span class="budget-cat-label">Food & groceries</span><div class="budget-cat-wrap"><input type="number" id="b-food" placeholder="0"></div></div>
+      <div class="budget-cat"><span class="budget-cat-label">Utilities</span><div class="budget-cat-wrap"><input type="number" id="b-util" placeholder="0"></div></div>
+      <div class="budget-cat"><span class="budget-cat-label">Healthcare</span><div class="budget-cat-wrap"><input type="number" id="b-health" placeholder="0"></div></div>
+      <div class="budget-cat"><span class="budget-cat-label">Subscriptions</span><div class="budget-cat-wrap"><input type="number" id="b-subs" placeholder="0"></div></div>
+      <div class="budget-cat"><span class="budget-cat-label">Debt payments</span><div class="budget-cat-wrap"><input type="number" id="b-debt" placeholder="0"></div></div>
+      <div class="budget-cat"><span class="budget-cat-label">Entertainment</span><div class="budget-cat-wrap"><input type="number" id="b-ent" placeholder="0"></div></div>
+      <div class="budget-cat"><span class="budget-cat-label">Other</span><div class="budget-cat-wrap"><input type="number" id="b-other" placeholder="0"></div></div>
+
+      <button class="calc-btn" onclick="calcBudget()">Build my budget</button>
+    </div>
+
+    <div class="results" id="budget-results">
+      <div class="result-empty">
+        <div class="result-empty-icon">💰</div>
+        <div class="result-empty-text">Enter your income and expenses<br>to see your full picture.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-strip" style="margin-top:48px;flex-direction:column;align-items:center;text-align:center;gap:18px;">
+    <div class="cta-strip-text">
+      <h3>Whatever your number looks like — there's a next step.</h3>
+      <p>Whether you're working through debt, figuring out what you can afford, or trying to get your budget right before buying — Brian will introduce you to the right people to move forward. No pressure. No pitch. Just real connections.</p>
+    </div>
+    <a href="index.html#contact">Introduce me to a loan officer →</a>
+  </div>
+
+</div>
+
+<script>
+// ── TABS ──
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.calc-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+// Auto-switch tab from URL param e.g. calculators.html?tab=debt
+(function(){
+  const tab = new URLSearchParams(window.location.search).get('tab');
+  if(tab){
+    const btn = document.querySelector(`.tab[onclick*="'${tab}'"]`);
+    if(btn) switchTab(tab, btn);
+  }
+})();
+
+function getNumber(id, fallback = 0) {
+  const el = document.getElementById(id);
+  if (!el) return fallback;
+  const value = parseFloat(el.value);
+  return Number.isFinite(value) ? value : fallback;
+}
+
+function clampNonNegative(id) {
+  const el = document.getElementById(id);
+  if (!el) return 0;
+  const safeValue = Math.max(0, getNumber(id, 0));
+  if (el.value !== '' && parseFloat(el.value) !== safeValue) {
+    el.value = safeValue;
+  }
+  return safeValue;
+}
+
+function formatMoney(amount) {
+  return '$' + Math.round(Math.max(0, amount)).toLocaleString();
+}
+
+function sortDebtsByMethod(debts, method) {
+  const sorted = [...debts];
+  if (method === 'avalanche') {
+    sorted.sort((a, b) => {
+      if (b.rate !== a.rate) return b.rate - a.rate;
+      return a.bal - b.bal;
+    });
+  } else {
+    sorted.sort((a, b) => {
+      if (a.bal !== b.bal) return a.bal - b.bal;
+      return b.rate - a.rate;
+    });
+  }
+  return sorted;
+}
+
+// ── DEBT PAYOFF ──
+let debtMethod = 'avalanche';
+let debtCount = 0;
+
+function setMethod(m) {
+  debtMethod = m;
+  document.getElementById('pill-avalanche').classList.toggle('active', m === 'avalanche');
+  document.getElementById('pill-snowball').classList.toggle('active', m === 'snowball');
+}
+
+function addDebt(name='', balance='', rate='', minPay='') {
+  debtCount++;
+  const id = debtCount;
+  const list = document.getElementById('debt-list');
+  const row = document.createElement('div');
+  row.className = 'debt-item debt-grid';
+  row.id = 'debt-row-' + id;
+  row.innerHTML = `
+    <input type="text" placeholder="Name" value="${name}" class="debt-name">
+    <input type="number" placeholder="0" value="${balance}" class="debt-balance" min="0">
+    <input type="number" placeholder="0" value="${rate}" class="debt-rate" min="0" max="100" step="0.1">
+    <input type="number" placeholder="0" value="${minPay}" class="debt-min" min="0">
+    <button class="debt-remove" onclick="document.getElementById('debt-row-${id}').remove()">×</button>
+  `;
+  list.appendChild(row);
+}
+
+// Seed with a couple of example rows
+addDebt('Credit card','5000','22','100');
+addDebt('Car loan','12000','6.5','250');
+
+function calcDebt() {
+  const rows = document.querySelectorAll('.debt-item');
+  const extra = clampNonNegative('extra');
+
+  let debts = [];
+  rows.forEach(r => {
+    const balanceInput = r.querySelector('.debt-balance');
+    const rateInput = r.querySelector('.debt-rate');
+    const minInput = r.querySelector('.debt-min');
+    const b = Math.max(0, parseFloat(balanceInput.value) || 0);
+    const rate = Math.max(0, parseFloat(rateInput.value) || 0);
+    const min = Math.max(0, parseFloat(minInput.value) || 0);
+    const name = r.querySelector('.debt-name').value || 'Debt';
+    balanceInput.value = balanceInput.value === '' ? '' : b;
+    rateInput.value = rateInput.value === '' ? '' : rate;
+    minInput.value = minInput.value === '' ? '' : min;
+    if (b > 0 && rate >= 0 && min > 0) debts.push({name, b, rate, min});
+  });
+
+  if (!debts.length) {
+    document.getElementById('debt-results').innerHTML = '<div class="result-empty"><div class="result-empty-text">Please add at least one debt with balance, rate, and minimum payment.</div></div>';
+    return;
+  }
+
+  // Simulate payoff
+  let ds = debts.map(d => ({...d, bal: d.b, activeMin: d.min}));
+  let totalInterest = 0;
+  let months = 0;
+  const maxMonths = 600;
+  const baseMonthlyBudget = debts.reduce((sum, debt) => sum + debt.min, 0) + extra;
+  let payoffPossible = true;
+
+  while (ds.some(d => d.bal > 0) && months < maxMonths) {
+    months++;
+    const previousTotalBalance = ds.reduce((sum, d) => sum + Math.max(0, d.bal), 0);
+    let remainingBudget = baseMonthlyBudget;
+
+    ds.forEach(d => {
+      if (d.bal <= 0) return;
+      const interest = d.bal * (d.rate / 100 / 12);
+      totalInterest += interest;
+      d.bal += interest;
+    });
+
+    ds.forEach(d => {
+      if (d.bal <= 0 || remainingBudget <= 0) return;
+      const minDue = Math.min(d.activeMin, d.bal, remainingBudget);
+      d.bal = Math.max(0, d.bal - minDue);
+      remainingBudget -= minDue;
+      if (d.bal === 0) d.activeMin = 0;
+    });
+
+    let activeDebts = sortDebtsByMethod(ds.filter(d => d.bal > 0), debtMethod);
+
+    while (remainingBudget > 0 && activeDebts.length) {
+      const target = activeDebts[0];
+      const payment = Math.min(remainingBudget, target.bal);
+      target.bal = Math.max(0, target.bal - payment);
+      remainingBudget -= payment;
+
+      if (target.bal === 0) {
+        target.activeMin = 0;
+        activeDebts = sortDebtsByMethod(ds.filter(d => d.bal > 0), debtMethod);
+      }
+    }
+
+    const currentTotalBalance = ds.reduce((sum, d) => sum + Math.max(0, d.bal), 0);
+    if (ds.some(d => d.bal > 0) && currentTotalBalance >= previousTotalBalance - 0.005) {
+      payoffPossible = false;
+      break;
+    }
+  }
+
+  const yrs = Math.floor(months / 12);
+  const mos = months % 12;
+  const totalMinPay = debts.reduce((s,d) => s + d.min, 0);
+  const totalBal = debts.reduce((s,d) => s + d.b, 0);
+
+  const methodLabel = debtMethod === 'avalanche' ? 'Avalanche (highest rate first)' : 'Snowball (smallest balance first)';
+
+  if (!payoffPossible || ds.some(d => d.bal > 0 && months >= maxMonths)) {
+    document.getElementById('debt-results').innerHTML = `
+      <div class="card-title">Your payoff plan</div>
+      <div class="warning-box">
+        <strong>This payoff plan does not fully resolve within the current assumptions.</strong><br>
+        Increase your monthly payment, lower rates, or revise minimums to generate a successful payoff timeline.
+      </div>
+      <div style="margin-top:18px;font-size:12px;color:var(--muted);line-height:1.6;font-weight:300;">
+        The calculator protects against impossible payoff scenarios so it does not report misleading results.
+      </div>
+    `;
+    return;
+  }
+
+  document.getElementById('debt-results').innerHTML = `
+    <div class="card-title">Your payoff plan</div>
+    <div class="result-stat">
+      <div class="result-label">Total debt</div>
+      <div class="result-value">${formatMoney(totalBal)}</div>
+    </div>
+    <div class="result-stat">
+      <div class="result-label">Debt-free in</div>
+      <div class="result-value purple">${yrs > 0 ? yrs + ' yr' + (yrs>1?'s':'') + ' ' : ''}${mos} mo${mos!==1?'s':''}</div>
+      <div class="result-note">Strategy: ${methodLabel}</div>
+      <div class="result-note">Freed minimum payments roll into the next target automatically as debts are cleared.</div>
+    </div>
+    <div class="result-stat">
+      <div class="result-label">Total interest paid</div>
+      <div class="result-value red">${formatMoney(totalInterest)}</div>
+      <div class="result-note">Your ${formatMoney(extra)}/mo extra payment keeps cascading to the next balance.</div>
+    </div>
+    <div class="result-stat">
+      <div class="result-label">Monthly going out</div>
+      <div class="result-value">${formatMoney(totalMinPay + extra)}</div>
+      <div class="result-note">${formatMoney(totalMinPay)} minimums + ${formatMoney(extra)} extra</div>
+    </div>
+    <div style="margin-top:18px;font-size:12px;color:var(--muted);line-height:1.6;font-weight:300;">
+      This is an estimate based on fixed rates and consistent payments. For a full plan tailored to your situation, Brian can point you toward the right resources — real ones.
+    </div>
+  `;
+}
+
+// ── HOME AFFORDABILITY ──
+function getAffordabilitySnapshot() {
+  const income = clampNonNegative('a-income');
+  const monthlyDebt = clampNonNegative('a-debt');
+  const down = clampNonNegative('a-down');
+  const annualRate = Math.max(0, getNumber('a-rate', 7));
+  const termYears = Math.min(30, Math.max(1, getNumber('a-term', 30) || 30));
+  const rate = annualRate / 100 / 12;
+  const term = termYears * 12;
+  const monthlyIncome = income;
+  const maxDebt = monthlyIncome * 0.36;
+  const availablePayment = maxDebt - monthlyDebt;
+  const maxPayment = availablePayment > 0 ? availablePayment : 0;
+  const canCalculateHomePrice = monthlyIncome > 0 && availablePayment > 0;
+  let maxLoan = 0;
+
+  if (canCalculateHomePrice && rate > 0) {
+    maxLoan = maxPayment > 0 ? maxPayment * (1 - Math.pow(1 + rate, -term)) / rate : 0;
+  } else if (canCalculateHomePrice) {
+    maxLoan = maxPayment * term;
+  } else {
+    maxLoan = 0;
+  }
+
+  const maxHome = canCalculateHomePrice ? Math.max(0, maxLoan + down) : null;
+  const currentDti = monthlyIncome > 0 ? (monthlyDebt / monthlyIncome * 100) : 0;
+  const totalDti = monthlyIncome > 0 ? ((maxPayment + monthlyDebt) / monthlyIncome * 100) : 0;
+  const downPct = maxHome > 0 ? (down / maxHome * 100) : 0;
+  const debtTooHigh = monthlyIncome > 0 && availablePayment <= 0;
+
+  return {
+    income,
+    monthlyDebt,
+    down,
+    annualRate,
+    termYears,
+    monthlyIncome,
+    maxDebt,
+    availablePayment,
+    maxPayment,
+    maxLoan,
+    maxHome,
+    currentDti,
+    totalDti,
+    downPct,
+    debtTooHigh,
+    canCalculateHomePrice
+  };
+}
+
+function updateAffordabilityLive() {
+  const snapshot = getAffordabilitySnapshot();
+  const liveText = document.getElementById('a-dti-live');
+  const liveBar = document.getElementById('a-dti-bar');
+  if (!liveText || !liveBar) return;
+
+  const dtiValue = Math.min(snapshot.currentDti, 100);
+  const healthy = snapshot.currentDti <= 36;
+  liveBar.style.width = dtiValue + '%';
+  liveBar.style.background = healthy
+    ? 'linear-gradient(90deg,var(--green),#34d399)'
+    : 'linear-gradient(90deg,var(--red),#fca5a5)';
+
+  if (!snapshot.income) {
+    liveText.textContent = 'Enter your income and debt to see your current debt-to-income ratio.';
+    return;
+  }
+
+  if (snapshot.debtTooHigh) {
+    liveText.textContent = `Current DTI: ${snapshot.currentDti.toFixed(1)}%. Your current monthly debt already meets or exceeds the 36% back-end guideline.`;
+    return;
+  }
+
+  liveText.textContent = `Current DTI: ${snapshot.currentDti.toFixed(1)}%. Available housing payment under the 36% guideline is ${formatMoney(snapshot.availablePayment)}.`;
+}
+
+function calcAfford() {
+  const snapshot = getAffordabilitySnapshot();
+
+  if (!snapshot.income) {
+    document.getElementById('afford-results').innerHTML = '<div class="result-empty"><div class="result-empty-text">Please enter your monthly income to get started.</div></div>';
+    updateAffordabilityLive();
+    return;
+  }
+
+  const warning = snapshot.debtTooHigh ? `
+    <div class="warning-box">
+      <strong>Your current monthly debt is too high for this estimate.</strong><br>
+      Based on standard 36% back-end DTI guidelines, there is no room left for a housing payment at the numbers entered.
+    </div>
+  ` : '';
+  const pmi = snapshot.canCalculateHomePrice
+    ? (snapshot.downPct < 20 ? 'PMI likely required' : 'No PMI required — great position')
+    : '';
+
+  document.getElementById('afford-results').innerHTML = `
+    <div class="card-title">Your affordability range</div>
+    <div class="result-stat">
+      <div class="result-label">Estimated home price</div>
+      <div class="result-value ${snapshot.debtTooHigh ? 'red' : 'green'}">${snapshot.canCalculateHomePrice ? formatMoney(snapshot.maxHome) : '—'}</div>
+      <div class="result-note">Based on the 36% total DTI guideline</div>
+    </div>
+    <div class="result-stat">
+      <div class="result-label">Max monthly payment</div>
+      <div class="result-value ${snapshot.debtTooHigh ? 'red' : ''}">${snapshot.canCalculateHomePrice ? formatMoney(snapshot.maxPayment) : '—'}</div>
+      <div class="result-note">Principal + interest only — add taxes & insurance</div>
+    </div>
+    ${snapshot.canCalculateHomePrice ? `<div class="result-stat">
+      <div class="result-label">Down payment</div>
+      <div class="result-value">${formatMoney(snapshot.down)} <span style="font-size:16px;color:var(--muted)">(${snapshot.downPct.toFixed(1)}%)</span></div>
+      <div class="result-note">${pmi}</div>
+    </div>` : ''}
+    <div class="result-stat">
+      <div class="result-label">Debt-to-income ratio</div>
+      <div class="result-value ${snapshot.totalDti <= 36 ? 'green' : 'red'}">${snapshot.totalDti.toFixed(1)}%</div>
+      <div class="prog-bar-wrap"><div class="prog-bar" style="width:${Math.min(snapshot.totalDti,100)}%;background:${snapshot.totalDti<=36?'linear-gradient(90deg,var(--green),#34d399)':'linear-gradient(90deg,var(--red),#fca5a5)'};"></div></div>
+      <div class="result-note">Current DTI is ${snapshot.currentDti.toFixed(1)}%. This estimate caps total monthly debt at 36%.</div>
+    </div>
+    ${warning}
+    <div style="margin-top:18px;font-size:12px;color:var(--muted);line-height:1.6;font-weight:300;">
+      These are estimates based on standard lending guidelines. A lender will review your full credit profile before issuing a pre-approval. Brian can introduce you to a trusted loan officer to get the real number — no pressure, just clarity.
+    </div>
+  `;
+
+  updateAffordabilityLive();
+}
+
+// ── BUDGET BUILDER ──
+function calcBudget() {
+  const income = clampNonNegative('b-income');
+  const cats = [
+    {id:'b-housing', label:'Housing'},
+    {id:'b-transport', label:'Transportation'},
+    {id:'b-food', label:'Food & groceries'},
+    {id:'b-util', label:'Utilities'},
+    {id:'b-health', label:'Healthcare'},
+    {id:'b-subs', label:'Subscriptions'},
+    {id:'b-debt', label:'Debt payments'},
+    {id:'b-ent', label:'Entertainment'},
+    {id:'b-other', label:'Other'},
+  ];
+
+  if (!income) {
+    document.getElementById('budget-results').innerHTML = '<div class="result-empty"><div class="result-empty-text">Please enter your monthly take-home income.</div></div>';
+    return;
+  }
+
+  let totalExp = 0;
+  let breakdown = '';
+  cats.forEach(c => {
+    const v = clampNonNegative(c.id);
+    if (v > 0) {
+      totalExp += v;
+      const pct = income > 0 ? (v / income * 100) : 0;
+      breakdown += `
+        <div class="result-stat" style="margin-bottom:12px;padding-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;">
+            <span style="font-size:13px;color:var(--muted);">${c.label}</span>
+            <span style="font-size:14px;font-weight:500;">$${Math.round(v).toLocaleString()} <span style="font-size:12px;color:var(--muted)">${pct.toFixed(1)}%</span></span>
+          </div>
+          <div class="prog-bar-wrap"><div class="prog-bar" style="width:${Math.min(pct,100)}%;"></div></div>
+        </div>`;
+    }
+  });
+
+  const leftover = income - totalExp;
+  const totalExpensePercentage = income > 0 ? (totalExp / income * 100) : 0;
+  const leftoverPercentage = income > 0 ? (leftover / income * 100) : 0;
+  const fmt = n => '$' + Math.abs(Math.round(n)).toLocaleString();
+
+  document.getElementById('budget-results').innerHTML = `
+    <div class="card-title">Your budget snapshot</div>
+    <div class="result-stat">
+      <div class="result-label">Monthly income</div>
+      <div class="result-value">$${Math.round(income).toLocaleString()}</div>
+    </div>
+    <div class="result-stat">
+      <div class="result-label">Total expenses</div>
+      <div class="result-value red">$${Math.round(totalExp).toLocaleString()}</div>
+      <div class="result-note">${totalExpensePercentage.toFixed(1)}% of monthly income</div>
+    </div>
+    <div class="result-stat">
+      <div class="result-label">${leftover >= 0 ? 'Left over / savings potential' : 'Monthly shortfall'}</div>
+      <div class="result-value ${leftover >= 0 ? 'green' : 'red'}">${leftover >= 0 ? '' : '-'}${fmt(leftover)}</div>
+      <div class="result-note">${leftover >= 0 ? leftoverPercentage.toFixed(1) + '% of income available — aim for 20%' : Math.abs(leftoverPercentage).toFixed(1) + '% over monthly income'}</div>
+    </div>
+    <hr class="section-divider">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:500;text-transform:uppercase;letter-spacing:1px;">Expense breakdown</div>
+    ${breakdown || '<div style="font-size:13px;color:var(--muted);">No expenses entered.</div>'}
+    <div style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.6;font-weight:300;">
+      The 50/30/20 rule: 50% needs, 30% wants, 20% savings. How do you stack up?
+    </div>
+  `;
+}
+
+['a-income', 'a-debt', 'a-down', 'a-rate', 'a-term'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('input', () => {
+    if (id !== 'a-rate') clampNonNegative(id);
+    updateAffordabilityLive();
+  });
+});
+
+updateAffordabilityLive();
+</script>
+</body>
+</html>
