@@ -1723,6 +1723,16 @@ const leadMagnets = {
   "Super Bowl Raffle Event Guide": { slug: "super-bowl-block-pool-blueprint", name: "Super Bowl Block Pool Blueprint", audience: "realtor" },
   "Open House Checklist": { slug: "open-house-event-blueprint", name: "Open House Event Blueprint", audience: "realtor" }
 };
+const leadMagnetWebhookUrls = {
+  "super-bowl-block-pool-blueprint": "https://services.leadconnectorhq.com/hooks/OhS8DHQpNuyCKBErW3fj/webhook-trigger/83b69ef4-9be1-4557-8ff3-11d09d5b50a9",
+  "home-buyer-seminar-blueprint": "https://services.leadconnectorhq.com/hooks/OhS8DHQpNuyCKBErW3fj/webhook-trigger/2e274481-52ac-47bd-a44b-c2659f4e738c",
+  "open-house-event-blueprint": "https://services.leadconnectorhq.com/hooks/OhS8DHQpNuyCKBErW3fj/webhook-trigger/bc3fd860-c926-4b52-80f9-6c0f36286d32",
+  "how-to-take-title": "https://services.leadconnectorhq.com/hooks/OhS8DHQpNuyCKBErW3fj/webhook-trigger/0d81b72f-4250-4ed0-b787-a849aa57309e",
+  "home-buyers-guide": "https://services.leadconnectorhq.com/hooks/OhS8DHQpNuyCKBErW3fj/webhook-trigger/21e397fb-9b97-4164-8596-62a6990b9752",
+  "importance-of-a-certificate-of-occupancy": "https://services.leadconnectorhq.com/hooks/OhS8DHQpNuyCKBErW3fj/webhook-trigger/34286c35-d18e-4a3f-ae3e-d25a24d053c3",
+  "why-you-need-a-survey": "https://services.leadconnectorhq.com/hooks/OhS8DHQpNuyCKBErW3fj/webhook-trigger/ec54469f-ca2d-4514-8a29-fbb64b09ca30",
+  "what-is-title-insurance": "https://services.leadconnectorhq.com/hooks/OhS8DHQpNuyCKBErW3fj/webhook-trigger/0fa71cf0-7d4a-4994-b5e5-ee3ed06cc1c6"
+};
 let currentLeadMagnet = null;
 function openModal(assetKey){
   const asset = leadMagnets[assetKey] || { slug: assetKey.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""), name: assetKey, audience: "unknown" };
@@ -1743,7 +1753,8 @@ async function submitLead(){
   const payload={name:n,email:e,phone:p,asset_slug:asset.slug,asset_name:asset.name,audience:asset.audience,source:"website_resource_download"};
   try{
     const apiBase=(window.location.protocol==="file:"||window.location.hostname==="localhost"||window.location.hostname==="127.0.0.1")?"http://localhost:3001":"";
-    const res=await fetch(apiBase+"/lead-magnet",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    const webhookUrl=leadMagnetWebhookUrls[asset.slug]||apiBase+"/lead-magnet";
+    const res=await fetch(webhookUrl,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
     if(!res.ok)throw new Error("Lead magnet request failed");
     document.getElementById("mfw").style.display="none";
     document.getElementById("mOK").classList.add("show");
